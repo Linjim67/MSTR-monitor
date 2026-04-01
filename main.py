@@ -46,7 +46,7 @@ def get_history():
 
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-3-flash-preview')
 
 @app.get("/api/ai-summary")
 def get_ai_summary():
