@@ -28,7 +28,7 @@ def get_history():
 
     df = pd.DataFrame({'mstr_price': mstr_data, 'btc_price': btc_data}).dropna()
     df['nav_per_share'] = (BTC_HOLDINGS * df['btc_price']) / SHARES_OUTSTANDING
-        df['ratio'] = df['mstr_price'] / df['nav_per_share']
+    df['ratio'] = df['mstr_price'] / df['nav_per_share']
     
     # Format for Frontend
     history = []
@@ -84,7 +84,8 @@ def get_ai_summary():
         return {"summary": "AI Insight currently unavailable. Please check API configuration."}
 
 
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Read the PORT from environment variables, default to 8000 if not found
+    port = int(os.environ.get("PORT", 8000)) 
+    uvicorn.run(app, host="0.0.0.0", port=port)
