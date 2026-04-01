@@ -130,10 +130,32 @@
                 }
             }
 
-        function runFullAnalysis() {
-            loadAnalytics(); // Your existing chart function
-            getAISummary();  // The new AI function
+        async function runFullAnalysis() {
+            const btn = document.getElementById('reportBtn');
+
+            // 1. Enter "Running" State
+            btn.disabled = true;
+            btn.innerText = "Running...";
+            btn.style.opacity = "0.7";
+            btn.style.cursor = "not-allowed";
+
+            try {
+                await Promise.all([
+                    loadAnalytics(),
+                    getAISummary()
+                ]);
+            } catch (error) {
+                console.error("Analysis execution failed:", error);
+                alert("An error occurred during data retrieval.");
+            } finally {
+                // 3. Restore Original State
+                btn.disabled = false;
+                btn.innerText = "Generate 30-Day Report";
+                btn.style.opacity = "1";
+                btn.style.cursor = "pointer";
+            }
         }
+
     </script>
 </body>
 
