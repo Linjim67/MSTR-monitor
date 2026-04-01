@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MSTR DAT Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f4f4f9;
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #indicatorValue {
+            font-size: 3em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>MicroStrategy Premium to NAV</h1>
+        <div id="indicatorValue">Loading...</div>
+        <canvas id="navChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('http://localhost:8000/api/indicator');
+            const data = await response.json();
+            document.getElementById('indicatorValue').innerText = data.premium_to_nav.toFixed(4);
+            // In a full implementation, you would push this value to a time-series array here
+        }
+        setInterval(fetchData, 10000); // Update every 10 seconds
+        fetchData();
+    </script>
+</body>
+
+</html>
