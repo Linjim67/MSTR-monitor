@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
-import requests
 import pandas as pd
+import os
+import google.generativeai as genai
+from fastapi import FastAPI
+
 
 app = FastAPI()
 
@@ -13,39 +16,74 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Current MicroStrategy Stats (April 1, 2026)
-BTC_HOLDINGS = 762099  
-SHARES_OUTSTANDING = 325230000 
+# 2026 Constants
+BTC_HOLDINGS = 762099
+SHARES_OUTSTANDING = 325230000
 
-@app.get("/")
-def read_root():
-    return {"message": "MSTR API is live. Use /api/indicator for data."}
+@app.get("/api/history")
+def get_history():
+    # Retrieve 1-month historical data
+    mstr_data = yf.Ticker("MSTR").history(period="1mo")['Close']
+    btc_data = yf.Ticker("BTC-USD").history(period="1mo")['Close']
 
-@app.get("/api/indicator")
-def get_mstr_indicator():
+    df = pd.DataFrame({'mstr_price': mstr_data, 'btc_price': btc_data}).dropna()
+    df['nav_per_share'] = (BTC_HOLDINGS * df['btc_price']) / SHARES_OUTSTANDING
+        df['ratio'] = df['mstr_price'] / df['nav_per_share']
+    
+    # Format for Frontend
+    history = []
+    for date, row in df.iterrows():
+        history.append({
+            "date": date.strftime('%Y-%m-%d'),
+            "mstr_price": round(row['mstr_price'], 2),
+            "nav_per_share": round(row['nav_per_share'], 2),
+            "ratio": round(row['ratio'], 4)
+        })
+    
+    return history
+
+
+
+
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel('gemini-pro')
+
+@app.get("/api/ai-summary")
+def get_ai_summary():
     try:
-        # Fetch MSTR Stock
-        mstr = yf.Ticker("MSTR")
-        mstr_price = mstr.history(period="1d")['Close'].iloc[-1]
+        # 1. Get the latest data for context
+        mstr = yf.Ticker("MSTR").history(period="1mo")
+        btc = yf.Ticker("BTC-USD").history(period="1mo")
         
-        # Fetch BTC Price
-        btc_url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-        btc_response = requests.get(btc_url).json()
-        btc_price = btc_response['bitcoin']['usd']
+        current_mstr = round(mstr['Close'].iloc[-1], 2)
+        current_btc = round(btc['Close'].iloc[-1], 2)
         
-        # NAV Calculation
-        market_cap = mstr_price * SHARES_OUTSTANDING
-        btc_value = BTC_HOLDINGS * btc_price
-        premium_to_nav = market_cap / btc_value
-
-        return {
-            "mstr_price": round(mstr_price, 2),
-            "btc_price": round(btc_price, 2),
-            "premium_to_nav": round(premium_to_nav, 4),
-            "timestamp": pd.Timestamp.now().isoformat()
-        }
+        # 2. Calculate current ratio
+        nav_per_share = (762099 * current_btc) / 325230000
+        ratio = current_mstr / nav_per_share
+        status = "Premium" if ratio > 1 else "Discount"
+        
+        # 3. Construct the Prompt
+        prompt = f"""
+        Act as a professional crypto-equity analyst. Analyze the following MicroStrategy (MSTR) data:
+        - Current MSTR Price: ${current_mstr}
+        - Current BTC Price: ${current_btc}
+        - Current Premium/Discount to NAV: {round(ratio, 4)} ({status})
+        - Context: MSTR holds 762,099 BTC.
+        
+        Provide a 3-sentence summary:
+        1. Explain what the current ratio means for investors.
+        2. Analyze the relationship with Bitcoin price behavior.
+        3. Provide a hypothesis on whether the stock is currently over or undervalued relative to its treasury.
+        """
+        
+        response = model.generate_content(prompt)
+        return {"summary": response.text}
+        
     except Exception as e:
-        return {"error": str(e)}
+        return {"summary": "AI Insight currently unavailable. Please check API configuration."}
+
+
 
 if __name__ == "__main__":
     import uvicorn
