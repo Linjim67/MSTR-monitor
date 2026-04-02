@@ -54,21 +54,22 @@
 <body>
     <div class="container">
         <h1>MicroStrategy (MSTR) DAT Analytics</h1>
-        <button onclick="loadAnalytics()">Generate 30-Day Report</button>
-        <div id="statusIndicator" class="status-box" style="display:none;"></div>
-        <canvas id="historyChart" style="margin-top:20px;"></canvas>
-        <button onclick="loadAnalytics()">Generate 30-Day Report</button>
-        <button id="reportBtn" onclick="runFullAnalysis()">Generate 30-Day Report</button>
-    </div>
 
-    <div id="aiSection" style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
-        <h3>🤖 AI Market Insight</h3>
-        <div id="aiContent" style="font-style: italic; color: #555; line-height: 1.6;">
-            Click the button above to generate AI analysis...
+        <div style="margin-bottom: 20px;">
+            <button id="reportBtn" onclick="runFullAnalysis()">Generate 30-Day Report</button>
         </div>
-        
-    </div>
 
+        <div id="statusIndicator" class="status-box" style="display:none;"></div>
+
+        <canvas id="historyChart" style="margin-top:20px;"></canvas>
+
+        <div id="aiSection" style="margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h3>AI Market Insight</h3>
+            <div id="aiContent" style="font-style: italic; color: #555; line-height: 1.6;">
+                Click the button above to generate AI analysis...
+            </div>
+        </div>
+    </div>
 
 
     <script>

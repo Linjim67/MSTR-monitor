@@ -20,15 +20,20 @@ SHARES_OUTSTANDING = 325230000
 
 @app.get("/api/history")
 def get_history():
-    # Retrieve 1-month historical data
+    # 1. Retrieve 1-month historical data
     mstr_data = yf.Ticker("MSTR").history(period="1mo")['Close']
     btc_data = yf.Ticker("BTC-USD").history(period="1mo")['Close']
 
-    df = pd.DataFrame({'mstr_price': mstr_data, 'btc_price': btc_data}).dropna()
+    mstr_data.index = mstr_data.index.tz_localize(None)
+    btc_data.index = btc_data.index.tz_localize(None)
+
+    df = pd.DataFrame({'mstr_price': mstr_data, 'btc_price': btc_data})
+    df = df.ffill().dropna()
+    
     df['nav_per_share'] = (BTC_HOLDINGS * df['btc_price']) / SHARES_OUTSTANDING
     df['ratio'] = df['mstr_price'] / df['nav_per_share']
     
-    # Format for Frontend
+    # 4. Format for Frontend
     history = []
     for date, row in df.iterrows():
         history.append({
