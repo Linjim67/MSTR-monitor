@@ -67,16 +67,13 @@ def get_ai_summary():
         
         # 3. Construct the Prompt
         prompt = f"""
-        Act as a professional crypto-equity analyst. Analyze the following MicroStrategy (MSTR) data:
-        - Current MSTR Price: ${current_mstr}
-        - Current BTC Price: ${current_btc}
-        - Current Premium/Discount to NAV: {round(ratio, 4)} ({status})
-        - Context: MSTR holds 762,099 BTC.
-        
-        Provide a 3-sentence summary:
-        1. Explain what the current ratio means for investors.
-        2. Analyze the relationship with Bitcoin price behavior.
-        3. Provide a hypothesis on whether the stock is currently over or undervalued relative to its treasury.
+        Write a concise, professional market insight for a financial dashboard.
+        Current MSTR Ratio: {round(ratio, 4)} ({status})
+        MSTR Price: ${current_mstr} | BTC Price: ${current_btc}
+
+        Write exactly three sentences as a single paragraph. 
+        Do not include an introductory sentence or numbered points.
+        Focus on whether the current {status} represents a buying opportunity or a risk.
         """
         
         response = model.generate_content(prompt)
