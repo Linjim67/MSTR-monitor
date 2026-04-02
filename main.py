@@ -4,8 +4,6 @@ import yfinance as yf
 import pandas as pd
 import os
 import google.generativeai as genai
-from fastapi import FastAPI
-
 
 app = FastAPI()
 
@@ -43,10 +41,9 @@ def get_history():
     return history
 
 
-
-
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel('gemini-3-flash-preview')
+
 
 @app.get("/api/ai-summary")
 def get_ai_summary():
